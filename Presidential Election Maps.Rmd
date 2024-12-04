@@ -1,0 +1,331 @@
+---
+title: "Presidential Election Maps"
+author: "Marco Lopez"
+date: "2024-12-03"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+```
+
+```{r libraries, include = FALSE}
+library(socviz)
+library(dplyr)
+library(maps)
+library(ggplot2)
+library(ggthemes)
+library(mapproj)
+library(tinytex)
+library(stringr)
+library(usmapdata)
+library(ggrepel)
+
+```
+
+The purpose of this statistical document is to explore plotting maps in R by constructing past maps and charts of previous presidential elections.
+
+
+```{r}
+
+## 2016 election data
+
+election_2016 <- subset(election, select = c("state", "total_vote", "r_points", "d_points", "pct_trump", "pct_clinton", "party", "winner", "census"))
+
+```
+
+
+```{r}
+
+us_states <- map_data("state")
+
+# merging by region after making it lowercase from the state
+
+election_2016$region <- tolower(election$state)
+
+us_states_elec <- left_join(us_states, election_2016)
+
+```
+## 2016 Presidential Election Results
+
+```{r}
+
+party_colors <- c(
+  "Democratic" = "blue",     
+  "Republican" = "red"  
+)
+
+p0 <- ggplot(data = us_states_elec, mapping = aes(x = long, y = lat, group = group, fill = party))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.1) + coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+
+p2 <- p1 + scale_fill_manual(values = party_colors) + labs(title = "Election Results 2016", fill = NULL)
+
+p2 + theme_map()
+
+rm(p0, p1, p2)
+
+```
+
+Donald Trump won the electoral vote 304-227 over Hillary Clinton.
+
+## Winning margins in the 2016 election
+
+Chart depicts winning margins in the 2016 election. 
+
+```{r}
+
+p0 <- ggplot(data = subset(us_states_elec, region %nin% "district of columbia"), aes(x = long, y = lat, group = group, fill = d_points))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.1) + coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+
+p2 <- p1 + 
+  scale_fill_gradient2(
+    low = "red", 
+    mid = "purple",
+    high = "blue", 
+    midpoint = 0,
+    limits = c(-5, 5),
+    oob = scales::squish
+  ) + 
+  labs(title = "Winning Margins in 2016 Election", fill = "Percent")
+
+p2 + theme_map() + labs(fill= "Percent")
+
+
+rm(p0, p1, p2)
+
+```
+
+
+```{r}
+
+# load 2020 election dataset
+
+election_2020 <- read.csv("C:/Users/malop/Documents/presidential election/election_2020.csv")
+
+# 2020 election chart
+
+#merging by region after making it lowercase from the state
+
+election_2020$region <- tolower(election_2020$state)
+
+us_states_elec_2 <- left_join(us_states, election_2020)
+
+```
+
+## 2020 Election Results
+
+```{r}
+
+party_colors <- c(
+  "Democratic" = "blue",     
+  "Republican" = "red"  
+)
+
+p0 <- ggplot(data = us_states_elec_2, mapping = aes(x = long, y = lat, group = group, fill = party))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.1) + coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+
+p2 <- p1 + scale_fill_manual(values = party_colors) + labs(title = "Election Results 2020", fill = NULL)
+
+p2 + theme_map()
+
+rm(p0, p1, p2)
+
+```
+
+Joe Biden won the 2020 election over Donald Trump, 306-232.
+
+## 2024 Presidential Election Projection
+
+For the projection, we will use the polling averages (not forecast) from 538 (fivethirtyeight) listed on their website to project the result in each U.S. state. The averages were the final averages prior to the election on November 5, 2024. The final 538 forecast had Kamala Harris as a slight favorite 50 out of 100 chance over Donald Trump who had a 49 out of 100 chance.
+
+Nevada: Republican (Trump + 0.3)
+
+Arizona: Republican (Trump + 2.6)
+
+Georgia: Republican (Trump + 0.8)
+
+North Carolina: Republican (Trump + 0.9)
+
+Wisconsin: Democratic (Harris + 1.0)
+
+Michigan: Democratic (Harris + 1.0)
+
+Pennsylvania: Democratic (Harris + 0.2)
+
+```{r}
+
+# load 2024 election dataset
+
+election_2024proj1 <- read.csv("C:/Users/malop/Documents/presidential election/election_2024_proj1.csv")
+
+# 2024 election chart
+
+#merging by region after making it lowercase from the state
+
+election_2024proj1$region <- tolower(election_2024proj1$state)
+
+us_states_elec_3 <- left_join(us_states, election_2024proj1)
+
+```
+
+```{r}
+
+party_colors <- c(
+  "Democratic" = "blue",     
+  "Republican" = "red"  
+)
+
+p0 <- ggplot(data = us_states_elec_3, mapping = aes(x = long, y = lat, group = group, fill = party))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.1) + coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+
+p2 <- p1 + scale_fill_manual(values = party_colors) + labs(title = "Election Results 2024 (projection using 538 final polling averages)", fill = NULL)
+
+p2 + theme_map()
+
+rm(p0, p1, p2)
+
+```
+
+This projection had Kamala Harris winning 270-268 over Donald Trump.
+
+## 2024 Presidential Election Results
+
+Nevada: Republican (Trump + 3.1)
+
+Arizona: Republican (Trump + 5.5)
+
+Georgia: Republican (Trump + 2.2)
+
+North Carolina: Republican (Trump + 3.4)
+
+Wisconsin: Democratic (Trump + 0.9)
+
+Michigan: Democratic (Trump + 1.4)
+
+Pennsylvania: Democratic (Trump + 1.8)
+
+```{r}
+
+# load 2024 election results
+
+election_2024_results <- read.csv("C:/Users/malop/Documents/presidential election/election_2024_final.csv")
+
+# 2024 election chart
+
+# merging by region after making it lowercase from the state
+
+election_2024_results$region <- tolower(election_2024_results$state)
+
+us_states_elec_3 <- left_join(us_states, election_2024_results)
+
+party_colors <- c(
+  "Democratic" = "blue",     
+  "Republican" = "red"  
+)
+
+p0 <- ggplot(data = us_states_elec_3, mapping = aes(x = long, y = lat, group = group, fill = party))
+
+p1 <- p0 + geom_polygon(color = "gray90", size = 0.1) + coord_map(projection = "albers", lat0 = 39, lat1 = 45)
+
+p2 <- p1 + scale_fill_manual(values = party_colors) + labs(title = "Election Results 2024 (Actual)", fill = NULL)
+
+p2 + theme_map()
+
+rm(p0, p1, p2)
+
+```
+
+Donald Trump won the 2024 election 312-226 over Kamala Harris.
+
+## 2024 election compared to historical results
+
+With the results of the 2024 election, Trump became the first candidate to win 312+ electoral votes since Barack Obama in 2012, the first Republican to win 312+ electoral votes since George H.W. Bush in 1988, and the first Republican to win the popular vote since George W. Bush in 2004.
+
+The following chart shows how Trump's win stacks up historically in elections in past 50 years.
+
+```{r}
+
+elections_historic <- elections_historic %>% select(2:7)
+
+election_2020 <- data.frame(
+  year = 2020,
+  winner = "Joe Biden",
+  win_party = "Dem.",
+  ec_pct = 0.57,
+  popular_pct = 0.51,
+  popular_margin = 0.045
+)
+
+election_2024 <- data.frame(
+  year = 2024,
+  winner = "Donald Trump",
+  win_party = "Rep.",
+  ec_pct = 0.5799,
+  popular_pct = 0.499,
+  popular_margin = 0.017
+)
+
+# Add the new row
+elections_historic <- rbind(elections_historic, election_2020, election_2024)
+
+elections_historic <- elections_historic %>%
+  filter(year >= 1974) %>%
+  mutate(winner = str_extract(winner, "\\S+$"),
+         winner_label = paste(winner, year, sep = " - "))
+
+p_title <- "Presidential Elections: Popular and Electoral College Margins"
+
+p_subtitle <- "1974-2024"
+
+
+x_label <- "Winner's share of Popular Vote"
+y_label <- "Winner's share of Electoral College Votes"
+
+p <- ggplot(elections_historic, aes(x = popular_pct, y = ec_pct, label = winner_label))
+
+p + geom_hline(yintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_vline(xintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_point() +
+  geom_text_repel() +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = x_label, y = y_label, title = p_title, subtitle = p_subtitle)
+
+```
+
+The following chart shows how Trump's win stacks up historically among Republican winners in past 50 years.
+
+```{r}
+
+elections_historic <- elections_historic %>%
+  filter(year >= 1974) %>% filter(win_party == "Rep.") %>%
+  mutate(winner = str_extract(winner, "\\S+$"),
+         winner_label = paste(winner, year, sep = " - "))
+
+p_title <- "Presidential Elections: Popular and Electoral College Margins (Republican only)"
+
+p_subtitle <- "1974-2024"
+
+
+x_label <- "Winner's share of Popular Vote"
+y_label <- "Winner's share of Electoral College Votes"
+
+p <- ggplot(elections_historic, aes(x = popular_pct, y = ec_pct, label = winner_label))
+
+p + geom_hline(yintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_vline(xintercept = 0.5, size = 1.4, color = "gray80") +
+  geom_point() +
+  geom_text_repel() +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = x_label, y = y_label, title = p_title, subtitle = p_subtitle)
+
+```
